@@ -2,12 +2,12 @@ import random
 
 histogram = []
 
-for i in range(10):
+for i in range(20):
   cur_bar = []
   j = 0
-  for j in range(random.randint(0,10)):
+  for j in range(random.randint(0,20)):
     cur_bar.append(1)
-  for k in range(10-j):
+  for k in range(20-j):
     cur_bar.append(0)
   histogram.append(cur_bar)
 
@@ -60,14 +60,17 @@ reverse_iter = range(len(histogram))
 reverse_iter.reverse()
 
 for i in reverse_iter:
-  out_line = '%d  ' % i 
+  if i >= 10:
+    out_line = '%d ' % i
+  else:
+    out_line = '%d  ' % i
   for j in range(len(histogram[i])):
     if histogram[i][j] == 1:
       out_line = out_line + '# '
     else:
       out_line = out_line + '  '
   print out_line
-print '  0 1 2 3 4 5 6 7 8 9'
+print ' '*3 + str(0) + ' '*17 + str(9) + ' '*19 + str(19) 
 
 print max_
 print max_loc
