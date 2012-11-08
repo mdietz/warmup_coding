@@ -35,18 +35,19 @@ class Parser:
             elif arg[0:1] == '-':
                 flag_name = arg[1:len(arg)]
 
-            print flag_name
-            print next
             if flag_name in self.required: #or flag_name in self.optional:
                 flag_val = self.required[flag_name](flag_name, val=next)
                 res[flag_name] = flag_val
             else:
                 raise Exception("Undefined flag")
 
+            # Skip to next flag if no value for this flag, otherwise skip forward twice
             if next is None:
                 i = i + 1
             else:
                 i = i + 2
+
+        # Check for missing required flags        
         for req_flag in self.required:
             if not req_flag in res:
                 raise Exception("Missing required flag")
@@ -72,12 +73,10 @@ class Parser:
             else:
                 tokens.append((elem, True))
                 literal_start = False
-        print tokens
 
         # Trim empty and whitespace elements (that are not literals) from token list
         for elem in tokens:
             if elem[1] == False and (len(elem[0]) == 0 or re.match('^\s*$', elem[0]) != None):
-                print "removing %s" % elem[0]
                 tokens.remove(elem)
 
         # Split non literal tokens on whitespace keeping token order intact
@@ -91,7 +90,6 @@ class Parser:
             else:
                 split_tokens.append(elem[0])
 
-        print split_tokens
         return split_tokens
 
 # Verifier function, allows developer to translate a flag value into a different value set to the
@@ -115,6 +113,7 @@ def check_literal(flag_name, val=None):
         raise Exception("Value required for flag %s" % flag_name)
     return val
 
+# A bit of testing
 p = Parser({"foo":check_foo, "baz":check_baz, "literal1":check_literal, "literal2":check_literal}, None, None)
 
 res = p.parse_args(p.parse_string("--foo bar -baz -literal1 \"This is\" --literal2 \"A Test\""))
