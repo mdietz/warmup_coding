@@ -35,11 +35,14 @@ class Parser:
             elif arg[0:1] == '-':
                 flag_name = arg[1:len(arg)]
 
-            if flag_name in self.required: #or flag_name in self.optional:
+            if flag_name in self.required:
                 flag_val = self.required[flag_name](flag_name, val=next)
                 res[flag_name] = flag_val
+            elif flag_name in self.optional:
+                flag_val = self.optional[flag_name](flag_name, val=next)
+                res[flag_name] = flag_val
             else:
-                raise Exception("Undefined flag")
+                raise Exception("Undefined flag: %s" % flag_name)
 
             # Skip to next flag if no value for this flag, otherwise skip forward twice
             if next is None:
@@ -50,7 +53,7 @@ class Parser:
         # Check for missing required flags        
         for req_flag in self.required:
             if not req_flag in res:
-                raise Exception("Missing required flag")
+                raise Exception("Missing required flag: %s" % req_flag)
 
         return res
 
@@ -114,7 +117,41 @@ def check_literal(flag_name, val=None):
     return val
 
 # A bit of testing
-p = Parser({"foo":check_foo, "baz":check_baz, "literal1":check_literal, "literal2":check_literal}, None, None)
+p = Parser({"foo":check_foo, "baz":check_baz, "literal1":check_literal}, optional_flags={"literal2":check_literal})
 
+# Well formed
 res = p.parse_args(p.parse_string("--foo bar -baz -literal1 \"This is\" --literal2 \"A Test\""))
 print res
+
+# Missing optional arg
+res = p.parse_args(p.parse_string("--foo bar -baz -literal1 \"This is\""))
+print res
+
+# Missing required flag
+try:
+    res = p.parse_args(p.parse_string("-baz -literal1 \"This is\""))
+    print res
+except Exception as detail:
+    print detail
+
+# Missing required flag value
+try:
+    res = p.parse_args(p.parse_string("--foo -baz -literal1 \"This is\""))
+    print res
+except Exception as detail:
+    print detail
+
+# Incorrect flag value
+try:
+    res = p.parse_args(p.parse_string("--foo rab -baz -literal1 \"This is\""))
+    print res
+except Exception as detail:
+    print detail
+
+# Flag value passed for flag that doesn't required a value
+try:
+    res = p.parse_args(p.parse_string("--foo bar -baz asdf -literal1 \"This is\""))
+    print res
+except Exception as detail:
+    print detail
+
